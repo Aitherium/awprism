@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1",
+  "name": "awprism",
+  "description": "Turn a failure into ranked hypotheses — and say what would confirm each one.",
+  "url": "https://aitherium.github.io/awprism/",
+  "repository": "https://github.com/Aitherium/awprism",
+  "kind": "tool",
+  "status": "planned",
+  "adopt": "Hand it a failure and get back ranked candidate causes, each with the one observation that would rule it in or out.",
+  "pairs_with": [
+    "awreason",
+    "awrepl",
+    "awgraph",
+    "awdit"
+  ],
+  "includes": []
+}
