@@ -5,7 +5,7 @@
   "url": "https://aitherium.github.io/awprism/",
   "repository": "https://github.com/Aitherium/awprism",
   "kind": "tool",
-  "status": "planned",
+  "status": "public",
   "adopt": "Hand it a failure and get back ranked candidate causes, each with the one observation that would rule it in or out.",
   "pairs_with": [
     "awreason",
