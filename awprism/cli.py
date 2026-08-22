@@ -167,6 +167,11 @@ def _show_diagnosis(diagnosis, as_json: bool, as_markdown: bool) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     """Main CLI entry point."""
+    # GENERATED doctor intercept (gen_aw_doctor.py) -- do not edit
+    _dv = locals().get("argv")
+    if (_dv if _dv is not None else __import__("sys").argv[1:])[:1] == ["doctor"]:
+        from ._doctor import report
+        return report()
     ap = argparse.ArgumentParser(
         prog="awprism",
         description="Turn a failure into ranked hypotheses.",
