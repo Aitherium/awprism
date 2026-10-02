@@ -196,6 +196,18 @@ class StrategyRegistry:
             )
         )
 
+        # Python tracebacks / pytest output: parse exception + innermost frame
+        from awprism import tracebacks
+
+        self.register(
+            DiagnosticStrategy(
+                name="python_traceback",
+                description="Diagnoses Python tracebacks and pytest failures by exception class",
+                pattern_check=tracebacks.looks_like_traceback,
+                generate_hypotheses=tracebacks.hypotheses,
+            )
+        )
+
         # Generic/unknown failures
         def unknown_pattern(s: str) -> bool:
             return True  # Always matches as fallback

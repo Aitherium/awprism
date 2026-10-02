@@ -26,7 +26,7 @@ from awprism.prism import Prism, PrismError
 from awprism.registry import DiagnosticStrategy, StrategyRegistry
 from awprism.scorer import HypothesisScorer
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "Prism",

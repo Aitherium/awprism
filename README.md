@@ -184,6 +184,25 @@ Run the self-test to verify Prism is working.
 
 Prove Prism holds its core contracts offline (no network, no LLM).
 
+### `awprism mcp` -- for a coding agent
+
+Serves `diagnose` to any MCP client over stdio. Stdlib only, starts in under a second,
+read-only.
+
+```json
+{"mcpServers": {"awprism": {"command": "awprism", "args": ["mcp"]}}}
+```
+
+| tool | does |
+|---|---|
+| `diagnose(failure_text, context_paths?, k?)` | ranked causes, each with `confirm_by`: the one observation that would confirm or rule it out |
+| `strategies()` | which failure classes are recognised |
+
+Python tracebacks and pytest output are parsed: exception class, message and innermost
+`file:line`. A chained traceback (`raise ... from`) is diagnosed at its FIRST exception,
+not the wrapper printed last. `context_paths` are read (tail 64 KiB each, max 8 files),
+never written; a path that could not be read is listed under `context_skipped`.
+
 ---
 
 ## What this does NOT do

@@ -217,6 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     sub.add_parser("health", help="check if awprism is working")
+    sub.add_parser("mcp", help="serve diagnose() to a coding agent over MCP stdio")
 
     args = ap.parse_args(argv)
 
@@ -226,6 +227,10 @@ def main(argv: list[str] | None = None) -> int:
     if not args.cmd:
         ap.print_help()
         return 2
+
+    if args.cmd == "mcp":
+        from awprism.mcp_server import main as mcp_main
+        return mcp_main()
 
     try:
         prism = Prism()

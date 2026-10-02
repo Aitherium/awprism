@@ -1,0 +1,34 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_______________________ test_awrelay_mcp_server_builds ________________________
+
+    def build_server():
+        """Construct the MCP server. Raises ImportError if `mcp` is absent."""
+        try:
+>           from mcp.server import MCPServer
+E           ImportError: cannot import name 'MCPServer' from 'mcp.server' (/home/dev/.venv/lib/python3.12/site-packages/mcp/server/__init__.py)
+
+/home/dev/src/awrelay/awrelay/mcp_server.py:90: ImportError
+
+The above exception was the direct cause of the following exception:
+
+    def test_awrelay_mcp_server_builds():
+        from awrelay.mcp_server import build_server
+>       assert build_server() is not None
+               ^^^^^^^^^^^^^^
+
+test_real_awrelay_mcp.py:3: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def build_server():
+        """Construct the MCP server. Raises ImportError if `mcp` is absent."""
+        try:
+            from mcp.server import MCPServer
+        except ImportError as exc:  # pragma: no cover - exercised by a bare install
+>           raise ImportError(_INSTALL_HINT) from exc
+E           ImportError: The MCP server needs the `mcp` package: pip install "awrelay[mcp]". Raised rather than degraded, because an MCP server that starts and serves no tools looks to the client exactly like a server with nothing to offer.
+
+/home/dev/src/awrelay/awrelay/mcp_server.py:92: ImportError
+=========================== short test summary info ===========================
+FAILED test_real_awrelay_mcp.py::test_awrelay_mcp_server_builds - ImportError...
+1 failed in 1.60s
