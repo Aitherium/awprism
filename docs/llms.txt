@@ -1,0 +1,32 @@
+# awprism
+
+> Turn a failure into ranked hypotheses — and say what would confirm each one.
+
+Debugging with an agent collapses onto the first plausible story, because nothing forces a second. The cost is not the wrong guess, it is the hours spent proving it — measured repeatedly here, where five hypotheses were spent on a service that was genuinely correct, and where a symptom named the wrong component so consistently that "the symptom names the INNOCENT service" had to be written down as a standing rule.
+
+## Install
+
+```
+pip install awprism
+```
+
+## Use it in 30 seconds
+
+Hand it a failure and get back ranked candidate causes, each with the one observation that would rule it in or out.
+
+## Composes with
+
+- [awreason](https://aitherium.github.io/awreason/) — A portable reasoning client — sessions, phases, thoughts, and the chain that produced the answer.
+- [awrepl](https://aitherium.github.io/awrepl/) — A REPL an agent can actually use — state that survives between turns.
+- [awgraph](https://aitherium.github.io/awgraph/) — A semantic code graph for agents — AST + tree-sitter, call graphs.
+- [awdit](https://aitherium.github.io/awdit/) — An append-only audit trail whose gaps are DETECTABLE.
+
+## Where it lives
+
+- Repo: https://github.com/Aitherium/awprism
+- Docs: https://aitherium.github.io/awprism/
+- Manifest (keys + the one-line adoption story): https://aitherium.github.io/awprism/aither-manifest.json
+
+This repository is mirrored from the AitherOS monorepo by `.github/workflows/sync-awprism.yml`; hand edits made here are overwritten on the next sync — change the source instead.
+
+Everything Aitherium, in one file for agents: https://aitherium.com/llms.txt
