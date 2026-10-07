@@ -146,3 +146,28 @@ def test_stdio_server_starts_fast_and_answers_over_a_real_pipe():
     body = json.loads(replies[2]["result"]["content"][0]["text"])
     assert "MCPServer" in body["causes"][0]["cause"]
     assert elapsed < 5.0  # whole round trip incl. interpreter start; startup itself is <1 s
+
+
+@pytest.mark.parametrize(
+    "text, strategy",
+    [
+        ("connection refused on port 8111 after restart", "connection"),
+        ("curl: (6) Could not resolve host: Temporary failure in name resolution", "connection"),
+        ("HTTP 502 Bad Gateway from genesis", "upstream_http"),
+        ("the API returned 503 Service Unavailable", "upstream_http"),
+        ("podman: no container with name aitheros-security-core", "runtime"),
+        ("worker exited (137) after the deploy", "runtime"),
+    ],
+)
+def test_fleet_failure_classes_match_a_strategy_not_only_unknown(text, strategy):
+    # 2026-10-07: these fleet-incident shapes matched only "unknown", so the v22 pillars
+    # builder discarded 384 of ~400 real incidents as matching no diagnose strategy.
+    matched = mcp_server.diagnose(failure_text=text, k=3)["strategies_matched"]
+    assert strategy in matched, matched
+
+
+def test_plain_slowness_is_still_timeout_not_connection():
+    matched = mcp_server.diagnose(failure_text="the dashboard is slow and hung for a minute", k=3)[
+        "strategies_matched"
+    ]
+    assert "timeout" in matched and "connection" not in matched

@@ -196,6 +196,180 @@ class StrategyRegistry:
             )
         )
 
+        # Connection failures: the peer is not there (as opposed to slow -> timeout)
+        def connection_pattern(s: str) -> bool:
+            return any(
+                w in s
+                for w in [
+                    "connection refused",
+                    "connection reset",
+                    "econnrefused",
+                    "econnreset",
+                    "could not connect",
+                    "failed to connect",
+                    "could not resolve",
+                    "unreachable",
+                    "name or service not known",
+                    "name resolution",
+                    "getaddrinfo",
+                    "eai_again",
+                    "broken pipe",
+                    "ssl",
+                    "tls handshake",
+                    "certificate",
+                ]
+            )
+
+        def connection_hyps(symptom: str, context: str) -> list[Hypothesis]:
+            return [
+                Hypothesis(
+                    claim="Nothing is listening at the target address: the service is down or restarting",
+                    score=0.75,
+                    falsifier="Check the target's process/container status and that it listens on that port",
+                    evidence_for=["Connection failed"],
+                    evidence_against=[],
+                    rationale="A refused connection means the host answered but no listener took the port.",
+                ),
+                Hypothesis(
+                    claim="The client is pointed at the wrong host, port or scheme",
+                    score=0.6,
+                    falsifier="Compare the URL the client used against the service's declared address and scheme",
+                    evidence_for=["Connection failed"],
+                    evidence_against=[],
+                    rationale="A wrong port or http-vs-https mismatch fails the same way as a dead service.",
+                ),
+                Hypothesis(
+                    claim="Name resolution or the TLS handshake fails before the request is sent",
+                    score=0.5,
+                    falsifier="Resolve the hostname and complete a TLS handshake from the same client",
+                    evidence_for=["Connection failed"],
+                    evidence_against=[],
+                    rationale="DNS and certificate failures surface as connection errors, not HTTP errors.",
+                ),
+            ]
+
+        self.register(
+            DiagnosticStrategy(
+                name="connection",
+                description="Diagnoses refused, reset, unresolvable and TLS connection failures",
+                pattern_check=connection_pattern,
+                generate_hypotheses=connection_hyps,
+            )
+        )
+
+        # Upstream HTTP 5xx: a proxy or service answered, but with a server error
+        def upstream_pattern(s: str) -> bool:
+            return any(
+                w in s
+                for w in [
+                    "internal server error",
+                    "502",
+                    "503",
+                    "504",
+                    "bad gateway",
+                    "service unavailable",
+                    "gateway timeout",
+                    "upstream",
+                ]
+            )
+
+        def upstream_hyps(symptom: str, context: str) -> list[Hypothesis]:
+            return [
+                Hypothesis(
+                    claim="The service behind the proxy is down, restarting or failing its health check",
+                    score=0.7,
+                    falsifier="Call the backend directly, bypassing the proxy, and check its health endpoint",
+                    evidence_for=["Server error returned"],
+                    evidence_against=[],
+                    rationale="502/503 usually come from the proxy when its upstream is not answering.",
+                ),
+                Hypothesis(
+                    claim="The backend raised an unhandled exception for this request",
+                    score=0.6,
+                    falsifier="Read the backend's log at the request timestamp for a traceback",
+                    evidence_for=["Server error returned"],
+                    evidence_against=[],
+                    rationale="A 500 is the backend's own crash; the cause is in its log, not the client.",
+                ),
+                Hypothesis(
+                    claim="The proxy routes this path to a wrong or stale backend",
+                    score=0.4,
+                    falsifier="Inspect the proxy's route for this path and the backend address it resolves to",
+                    evidence_for=["Server error returned"],
+                    evidence_against=[],
+                    rationale="Stale routes after a redeploy return gateway errors for one path only.",
+                ),
+            ]
+
+        self.register(
+            DiagnosticStrategy(
+                name="upstream_http",
+                description="Diagnoses HTTP 5xx and gateway errors from a service or proxy",
+                pattern_check=upstream_pattern,
+                generate_hypotheses=upstream_hyps,
+            )
+        )
+
+        # Container / process runtime: the unit that should run is missing, exited or crash-looping
+        def runtime_pattern(s: str) -> bool:
+            return any(
+                w in s
+                for w in [
+                    "no container",
+                    "no such container",
+                    "exited (",
+                    "exited with",
+                    "crashloop",
+                    "crash loop",
+                    "restart loop",
+                    "oomkilled",
+                    "segmentation fault",
+                    "core dumped",
+                    "exit code",
+                    "exit status",
+                    "failed to start",
+                    "unit failed",
+                    "not running",
+                ]
+            )
+
+        def runtime_hyps(symptom: str, context: str) -> list[Hypothesis]:
+            return [
+                Hypothesis(
+                    claim="The container or process exited on startup and is not running",
+                    score=0.7,
+                    falsifier="List the unit's status and read its last log lines and exit code",
+                    evidence_for=["Runtime failure reported"],
+                    evidence_against=[],
+                    rationale="A missing or exited unit is the commonest reason a service disappears.",
+                ),
+                Hypothesis(
+                    claim="It was killed from outside: the OOM killer, a supervisor or a health-check restart",
+                    score=0.55,
+                    falsifier="Check kernel OOM messages and the supervisor's restart log at that time",
+                    evidence_for=["Runtime failure reported"],
+                    evidence_against=[],
+                    rationale="External kills leave the process log clean; the evidence is in the host log.",
+                ),
+                Hypothesis(
+                    claim="It runs under a different name or on a different node than the caller expects",
+                    score=0.45,
+                    falsifier="List all running units and match the name the caller used",
+                    evidence_for=["Runtime failure reported"],
+                    evidence_against=[],
+                    rationale="Renames, such as an HA -a/-b pair, make a healthy unit look absent.",
+                ),
+            ]
+
+        self.register(
+            DiagnosticStrategy(
+                name="runtime",
+                description="Diagnoses missing, exited, killed or crash-looping containers and processes",
+                pattern_check=runtime_pattern,
+                generate_hypotheses=runtime_hyps,
+            )
+        )
+
         # Python tracebacks / pytest output: parse exception + innermost frame
         from awprism import tracebacks
 
