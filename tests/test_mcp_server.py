@@ -171,3 +171,23 @@ def test_plain_slowness_is_still_timeout_not_connection():
         "strategies_matched"
     ]
     assert "timeout" in matched and "connection" not in matched
+
+
+@pytest.mark.parametrize(
+    "text, strategy",
+    [
+        ("listener bound to port 15020 and req-5031 logged", "upstream_http"),
+        ("loaded 4010 rows for user id=14033", "auth"),
+    ],
+)
+def test_status_codes_inside_numbers_do_not_match(text, strategy):
+    matched = mcp_server.diagnose(failure_text=text, k=3)["strategies_matched"]
+    assert strategy not in matched, matched
+
+
+@pytest.mark.parametrize(
+    "text, strategy",
+    [("got 503 from the router", "upstream_http"), ("request failed: 403", "auth")],
+)
+def test_status_codes_as_words_still_match(text, strategy):
+    assert strategy in mcp_server.diagnose(failure_text=text, k=3)["strategies_matched"]

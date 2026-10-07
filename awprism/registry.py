@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from typing import Callable
 
 from awprism.models import Hypothesis
+
+# HTTP status codes as whole words: a bare substring also matches ports and ids.
+_STATUS_5XX_RE = re.compile(r"(?<![0-9])50[234](?![0-9])")
+_STATUS_AUTH_RE = re.compile(r"(?<![0-9])40[13](?![0-9])")
 
 
 class DiagnosticStrategy:
@@ -111,8 +116,8 @@ class StrategyRegistry:
 
         # Authentication/access issues
         def auth_pattern(s: str) -> bool:
-            return any(
-                w in s for w in ["unauthorized", "401", "403", "forbidden", "denied", "permission"]
+            return bool(_STATUS_AUTH_RE.search(s)) or any(
+                w in s for w in ["unauthorized", "forbidden", "denied", "permission"]
             )
 
         def auth_hyps(symptom: str, context: str) -> list[Hypothesis]:
@@ -259,17 +264,19 @@ class StrategyRegistry:
 
         # Upstream HTTP 5xx: a proxy or service answered, but with a server error
         def upstream_pattern(s: str) -> bool:
-            return any(
+            # Status codes are word-bounded: a bare "502" substring also matched port 15020
+            # and ids such as req-5031.
+            return bool(_STATUS_5XX_RE.search(s)) or any(
                 w in s
                 for w in [
                     "internal server error",
-                    "502",
-                    "503",
-                    "504",
                     "bad gateway",
                     "service unavailable",
                     "gateway timeout",
-                    "upstream",
+                    "upstream connect",
+                    "upstream error",
+                    "upstream timed out",
+                    "no healthy upstream",
                 ]
             )
 
