@@ -10,6 +10,10 @@ Debugging with an agent collapses onto the first plausible story, because nothin
 pip install awprism
 ```
 
+## In Claude Code
+
+- mcp: `awprism mcp`
+
 ## Use it in 30 seconds
 
 Hand it a failure and get back ranked candidate causes, each with the one observation that would rule it in or out.
