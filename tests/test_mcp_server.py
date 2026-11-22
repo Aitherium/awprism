@@ -155,7 +155,7 @@ def test_stdio_server_starts_fast_and_answers_over_a_real_pipe():
         ("curl: (6) Could not resolve host: Temporary failure in name resolution", "connection"),
         ("HTTP 502 Bad Gateway from genesis", "upstream_http"),
         ("the API returned 503 Service Unavailable", "upstream_http"),
-        ("podman: no container with name aitheros-security-core", "runtime"),
+        ("podman: no container with name example-container", "runtime"),
         ("worker exited (137) after the deploy", "runtime"),
     ],
 )
